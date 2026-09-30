@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "discord-music-bot"
+version = "0.2.0"
+description = "Secure, guild-isolated Discord music bot"
+requires-python = ">=3.12"
+dependencies = [
+  "discord.py==2.7.1",
+  "PyNaCl==1.6.2",
+  "python-dotenv==1.2.2",
+  "spotipy==2.26.0",
+  "yt-dlp==2026.7.4",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "ASYNC"]

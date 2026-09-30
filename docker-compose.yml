@@ -1,0 +1,16 @@
+services:
+  discord_bot:
+    container_name: discord_bot
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 15s

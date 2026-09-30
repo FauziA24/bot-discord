@@ -1,7 +1,0 @@
-discord
-PyNaCl
-requests
-yt-dlp
-pillow
-spotipy
-python-dotenv

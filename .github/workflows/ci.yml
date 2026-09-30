@@ -1,0 +1,64 @@
+name: Secure CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install pinned dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt -r requirements-dev.txt
+      - name: Compile
+        run: python -m compileall -q index.py src tests scripts
+      - name: Unit tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+        run: python -m unittest discover -s tests -v
+      - name: Lint
+        run: ruff check .
+      - name: Static security analysis
+        run: bandit -q -r src index.py -ll
+      - name: Dependency vulnerability audit
+        run: pip-audit -r requirements.txt
+      - name: Project security policy gate
+        run: python scripts/security_gate.py
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Prepare non-secret Compose environment
+        run: cp .env.example .env
+      - name: Validate Compose
+        run: docker compose config --quiet
+      - name: Build production image
+        run: docker build --pull --tag discord-music-bot:${{ github.sha }} .
+      - name: Verify non-root runtime and FFmpeg
+        run: >-
+          docker run --rm --entrypoint sh discord-music-bot:${{ github.sha }}
+          -c 'test "$(id -u)" -ne 0 && command -v ffmpeg >/dev/null'

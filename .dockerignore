@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.understand-anything
+venv
+.venv
+bot_env
+__pycache__
+*.pyc
+*.log
+tests
+docs
+template_welcome.png
